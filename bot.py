@@ -816,6 +816,7 @@ def cmd_help(message):
                 "/listtasks - Liệt kê tác vụ đang chạy\n"
                 "/statusall - Thống kê toàn bộ tác vụ\n"
                 "/stopallglobal - Dừng toàn bộ tác vụ của mọi user (cẩn trọng)\n"
+                "/checkdelete - Kiểm tra quyền xóa tin nhắn\n"
             )
         try:
             sent = bot.send_message(message.chat.id, escape_markdown_v2(help_text), parse_mode='MarkdownV2')
@@ -1974,6 +1975,7 @@ def cmd_checkdelete(message):
 @log_command
 def cmd_autonotify(message):
     """Quản lý hệ thống thông báo tự động"""
+    global auto_notification_enabled
     try:
         # Gửi thông báo đang xử lý trước khi xóa tin nhắn lệnh
         processing_msg = bot.reply_to(message, "🔄 Đang xử lý lệnh /autonotify...")
@@ -2006,7 +2008,6 @@ def cmd_autonotify(message):
         chat_id = message.chat.id
         
         if action == 'on':
-            global auto_notification_enabled
             if auto_notification_enabled:
                 bot.edit_message_text("ℹ️ Hệ thống thông báo tự động đã được bật rồi!", 
                                     chat_id=message.chat.id, message_id=processing_msg.message_id)
@@ -2073,17 +2074,15 @@ def cmd_autonotify(message):
 def handle_unknown_message(message):
     """Xử lý các tin nhắn không được nhận diện"""
     try:
-        # Kiểm tra nếu là lệnh không tồn tại
-        if message.text.startswith('/'):
-            sent = bot.reply_to(message, 
+        # Chỉ phản hồi khi là lệnh (bắt đầu bằng '/')
+        if getattr(message, 'text', '') and message.text.startswith('/'):
+            sent = bot.reply_to(message,
                 f"❓ Lệnh `{message.text.split()[0]}` không tồn tại hoặc bạn không có quyền sử dụng.\n"
                 f"💡 Sử dụng /help để xem danh sách lệnh có sẵn.")
             auto_delete_response(message.chat.id, message.message_id, sent, delay=10)
         else:
-            # Tin nhắn thường
-            sent = bot.reply_to(message, 
-                "💬 Bot chỉ hỗ trợ các lệnh. Sử dụng /help để xem danh sách lệnh có sẵn.")
-            auto_delete_response(message.chat.id, message.message_id, sent, delay=8)
+            # Bỏ qua mọi tin nhắn thường
+            return
     except Exception as e:
         logger.error(f"Error handling unknown message: {e}")
 
