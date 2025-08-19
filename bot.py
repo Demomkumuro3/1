@@ -1702,10 +1702,10 @@ def cmd_runovh(message):
 
         _, host, port, duration, threads = args
 
-        if not os.path.isfile('udpovh2gb'):
+        if not os.path.isfile('udpovh2gb') and not os.path.isfile('udpovh2gb.exe'):
             if os.name == 'nt':  # Windows
                 bot.edit_message_text(
-                    "⚠️ Compilation not supported on Windows. Please compile udpovh2gb.c manually.",
+                    "⚠️ udpovh2gb.exe không tồn tại. Vui lòng compile udpovh2gb.c trên Windows hoặc cung cấp file .exe.",
                     chat_id=message.chat.id,
                     message_id=processing_msg.message_id
                 )
@@ -1945,7 +1945,7 @@ def cmd_stopovh(message):
         message_id=processing_msg.message_id
     )
     
-    stop_subprocess(message.from_user.id, message.chat.id, 'udpovh', message)
+    stop_subprocess_safe(message.from_user.id, message.chat.id, 'udpovh', processing_msg)
 
 def _stop_all_for_user(target_user_id: int, chat_id: int, processing_msg=None, across_all_chats: bool=False):
     """Dừng tất cả tác vụ thuộc user. Nếu across_all_chats=True sẽ dừng ở mọi chat."""
